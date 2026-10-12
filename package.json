@@ -1,0 +1,31 @@
+{
+  "name": "opencode-patchflow",
+  "version": "0.1.0",
+  "description": "Anchor-based atomic batch edits for OpenCode: one auditable tool call instead of opaque python heredocs or N edit calls.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/c-mateo/opencode-patchflow.git"
+  },
+  "keywords": ["opencode", "opencode-plugin", "patch", "edit", "program-aided"],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "files": ["src", "README.md", "PROPOSAL.md", "LICENSE"],
+  "dependencies": {
+    "@opencode/plugin": "2.0.24"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^5.6.0"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.ts\"",
+    "typecheck": "npx tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
