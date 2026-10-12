@@ -47,7 +47,8 @@ export default Plugin.define({
       editor.add({
         name: "apply",
         description:
-          "Apply anchor-based edits to files atomically. Each edit asserts " +
+          "Apply anchor-based batch edits atomically; prefer over `edit` when " +
+          "a stable anchor exists or batching multiple edits. Each edit asserts " +
           "its anchor occurs expectCount times (default 1), then inserts " +
           "`text` after the anchor or replaces it. Validates ALL edits " +
           "before writing ANY. Use dryRun first for a diff preview. " +

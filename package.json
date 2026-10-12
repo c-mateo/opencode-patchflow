@@ -1,6 +1,6 @@
 {
   "name": "opencode-patchflow",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Anchor-based atomic batch edits for OpenCode: one auditable tool call instead of opaque python heredocs or N edit calls.",
   "type": "module",
   "license": "MIT",
