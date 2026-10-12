@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/c-mateo/opencode-patchflow.git"
   },
+  "homepage": "https://www.npmjs.com/package/opencode-patchflow",
   "keywords": ["opencode", "opencode-plugin", "patch", "edit", "program-aided"],
   "exports": {
     ".": "./src/index.ts"
