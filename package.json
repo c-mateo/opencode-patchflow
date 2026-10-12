@@ -15,7 +15,7 @@
   "main": "./src/index.ts",
   "files": ["src", "README.md", "PROPOSAL.md", "LICENSE"],
   "dependencies": {
-    "@opencode/plugin": "2.0.24"
+    "@opencode/plugin": "2.0.26"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

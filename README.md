@@ -2,6 +2,10 @@
 
 Anchor-based atomic batch edits for OpenCode: one auditable tool call instead of opaque `python3 <<'EOF'` heredocs or N chained `edit` calls.
 
+> **Requires OpenCode 2.x.** Built against `@opencode/plugin` 2.0.26 and uses
+> only the V2 plugin API (`Plugin.define`, `tool.transform`, `permission`
+> and `tool` hooks). It does not work on OpenCode 1.x.
+
 ## Why
 
 Agents often edit files through `shell` with a Python heredoc:
