@@ -61,7 +61,13 @@ Two options tune the monitor,
 `{ "monitorOnly": true, "suggestOnAsk": true }`. The first keeps the plugin
 to observation, never touching a permission verdict (static `deny` rules
 win regardless). The second controls the pointer appended to
-already-asking shell requests. Local development points at the source
+already-asking shell requests. A third option, `{ "metrics": true }`,
+keeps session-aggregated counters — successful applies and dry runs with
+edit and file totals, errors, observed covert writes, and built-in `edit`
+calls as the comparison baseline — in
+`~/.local/share/opencode/log/patchflow-metrics.json`. Only counts, never
+commands or contents; at most twenty sessions are kept, oldest first out,
+with cumulative totals beside them. It defaults to off. Local development points at the source
 directly:
 
 ```jsonc

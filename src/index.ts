@@ -11,12 +11,19 @@ import { Plugin } from "@opencode/plugin";
 import { readFile, writeFile } from "node:fs/promises";
 import { applyAnchorEdits } from "./apply.ts";
 import { detectCovertWrite, summarizeFindings } from "./detect.ts";
+import { metricsFile, recordMetrics } from "./metrics.ts";
 
 interface PatchflowOptions {
   /** Log covert-write observations without changing any verdict. */
   monitorOnly?: boolean;
   /** Append a suggestion when a shell request already asks/denies. */
   suggestOnAsk?: boolean;
+  /**
+   * Session-aggregated counters (apply vs `edit` usage, covert writes).
+   * Local-only, default off. `metrics:"verbose"` is reserved for future
+   * per-operation debugging and currently behaves as `true`.
+   */
+  metrics?: boolean | "verbose";
 }
 
 interface FileEdit {
@@ -38,6 +45,11 @@ export default Plugin.define({
     const opts = (ctx.options ?? {}) as PatchflowOptions;
     const monitorOnly = opts.monitorOnly ?? true;
     const suggestOnAsk = opts.suggestOnAsk ?? true;
+    const metricsOn = opts.metrics === true || opts.metrics === "verbose";
+    const store = metricsFile();
+    // Staged per-call input (keyed by tool call id): committed in
+    // execute.after only when the call succeeds.
+    const staged = new Map<string, { dryRun: boolean; edits: number; files: number }>();
 
     await ctx.tool.transform((editor) => {
       editor.namespace({
@@ -154,10 +166,68 @@ export default Plugin.define({
         const findings = detectCovertWrite(args.command);
         if (findings.length > 0) {
           console.info(`[patchflow] shell hides file write (${summarizeFindings(findings)}); consider patchflow_apply`);
+          if (metricsOn) recordMetrics(store, event.sessionID, { covert: 1 });
         }
       } catch {
         // never break the tool call
       }
     });
+
+    if (metricsOn) {
+      await ctx.tool.hook("execute.before", async (event) => {
+        try {
+          if (event.tool !== "patchflow_apply") return;
+          const args = event.input as { edits?: unknown; dryRun?: unknown };
+          if (!Array.isArray(args?.edits)) return;
+          const files = new Set<string>();
+          for (const e of args.edits) {
+            if (typeof (e as { path?: unknown })?.path === "string") {
+              files.add((e as { path: string }).path);
+            }
+          }
+          staged.set(event.id, {
+            dryRun: args.dryRun === true,
+            edits: args.edits.length,
+            files: files.size,
+          });
+        } catch {
+          // metrics never break the tool call
+        }
+      });
+
+      await ctx.tool.hook("execute.after", async (event) => {
+        try {
+          if (event.status !== "completed") {
+            if (event.tool === "patchflow_apply") {
+              staged.delete(event.id);
+              recordMetrics(store, event.sessionID, { errors: 1 });
+            }
+            return;
+          }
+          if (event.tool === "edit") {
+            recordMetrics(store, event.sessionID, { editCalls: 1 });
+            return;
+          }
+          if (event.tool !== "patchflow_apply") return;
+          const content =
+            typeof event.result?.content === "string" ? event.result.content : null;
+          if (content !== null && content.startsWith("patchflow:")) {
+            staged.delete(event.id);
+            recordMetrics(store, event.sessionID, { errors: 1 });
+            return;
+          }
+          const pending = staged.get(event.id);
+          staged.delete(event.id);
+          if (!pending) return;
+          recordMetrics(store, event.sessionID, {
+            [pending.dryRun ? "dryRuns" : "apply"]: 1,
+            edits: pending.edits,
+            files: pending.files,
+          });
+        } catch {
+          // metrics never break the tool call
+        }
+      });
+    }
   },
 });
