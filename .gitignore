@@ -2,3 +2,6 @@ node_modules/
 dist/
 *.log
 guard-backups/
+
+# Engram local memory (syncs via Syncthing, never committed).
+.engram/
